@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presensi PKL</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 10px;
+            background-color: #FFFF;
+        }
+        .login-container, .absen-container, .result-container {
+            background: #007FFF;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 40px 20px rgba(0, 0, 0, 0.1);
+            max-width: 400px;
+            margin: auto;
+            transition: transform 0.3s;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 2rem; /* Ukuran font responsif */
+        }
+        input, select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem; 
+            transition: border-color 0.3s;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem; /* Ukuran font responsif */
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .error-message, .message {
+            color: red;
+            text-align: center;
+            margin-top: 10px;
+        }
+        .conditional {
+            display: none; 
+        }
+        .back-button {
+            display: inline-block;
+            width: 95%;
+            padding: 10px;
+            text-align: center;
+            background-color: #218838;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            text-decoration: none;
+            margin-top: 10px; /* Menambahkan margin atas untuk jarak */
+        }
+        .back-button:hover {
+            background-color: #0056b3;
+        }
+        .copyright {
+            position: absolute; /* Mengatur posisi absolut */
+            bottom: 5px; /* Jarak dari bawah */
+            right: 15px; /* Jarak dari kanan */
+            font-size: 0.7rem; /* Ukuran font copyright */
+            color: #343a40; /* Warna teks copyright */
+        }
+        #resultMessage {
+            text-align: left; /* Menambahkan ini untuk meratakan teks ke kiri */
+        }
+        @media (max-width: 600px) {
+            .login-container, .absen-container, .result-container {
+                padding: 20px; /* Mengurangi padding pada layar kecil */
+            }
+            h1 {
+                font-size: 1.5rem; /* Mengurangi ukuran font judul */
+            }
+            input, button {
+                font-size: 1rem; /* Meningkatkan ukuran font input dan tombol */
+            }
+        }
+        @media (max-width: 400px) {
+            h1 {
+                font-size: 1.2rem; /* Ukuran font lebih kecil untuk layar sangat kecil */
+            }
+            input, button {
+                font-size: 0.9rem; /* Ukuran font lebih kecil untuk layar sangat kecil */
+            }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Login Form -->
+<div class="login-container" id="loginContainer">
+    <h1>Login Presensi PKL</h1>
+    <form id="loginForm">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+
+        <button type="submit">Login</button>
+    </form>
+    <div id="message" class="error-message"></div>
+</div>
+
+<!-- Absensi Form -->
+<div class="absen-container" id="absenContainer" style="display: none;">
+    <h1>HUMAS</h1>
+    <h1>SMK MUHAMMADIYAH 2 BOJA</h1>
+    <h1>Presensi PKL</h1>
+    <form id="absenForm">
+        <label for="name">Nama:</label>
+        <input type="text" id="name" readonly>
+
+        <label for="class">Kelas:</label>
+        <input type="text" id="class" readonly>
+        
+        <label for="place">Nama Tempat PKL:</label>
+        <input type="text" id="place" required>
+
+        <label for="date">Tanggal:</label>
+        <input type="date" id="date" required>
+        
+        <label for="time">Waktu:</label>
+        <input type="time" id="time" required>
+
+        <label for="attendanceType">Jenis Presensi:</label>
+        <select id="attendanceType" required>
+            <option value="">Pilih Status Absen</option>
+            <option value="Hadir">Hadir</option>
+            <option value="Sakit">Sakit</option>
+            <option value="Ijin">Ijin</option>
+            <option value="Tempat PKL Libur">Tempat PKL Libur</option>
+            <option value="Presensi Pulang PKL">Presensi Pulang PKL</option>
+        </select>
+
+        <div id="uploadSection" class="conditional">
+            <label for="selfie">Upload Foto:</label>
+            <input type="file" id="selfie" accept="image/*" required>
+        </div>
+
+        <button type="submit">Kirim</button>
+    </form>
+    <div id="absenMessage" class="message"></div>
+</div>
+
+<!-- Result Page -->
+<div class="result-container" id="resultContainer" style="display: none;">
+    <h1>Data Presensi PKL Berhasil Dikirim</h1>
+    <div id="resultMessage" class="message"></div>
+    <a href="#" class="back-button" id="backButton">Kembali ke Halaman Login</a>
+    <div class="copyright">Copyright : R-Alala 2025/2026</div>
+</div>
+
+<script>
+    // Data pengguna untuk login
+    const users = {
+        "siswa1": { password: "111", name: "Andi", class: "10A" },
+        "siswa2": { password: "222", name: "Budi", class: "10B" },
+        "siswa3": { password: "password3", name: "Citra", class: "10C" },
+        "siswa4": { password: "password4", name: "Dewi", class: "10D" },
+        "siswa5": { password: "password5", name: "Eko", class: "10E" }
+    };
+
+    // Menangani login
+    document.getElementById('loginForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (users[username] && users[username].password === password) {
+            alert('Login berhasil! Selamat datang, ' + users[username].name + ' dari kelas ' + users[username].class + '!');
+            // Menampilkan form absensi
+            document.getElementById('loginContainer').style.display = 'none';
+            document.getElementById('absenContainer').style.display = 'block';
+            document.getElementById('name').value = users[username].name;
+            document.getElementById('class').value = users[username].class;
+        } else {
+            document.getElementById('message').innerText = 'Username atau password salah!';
+        }
+    });
+
+    // Menangani absensi
+    document.getElementById('attendanceType').addEventListener('change', function() {
+        const value = this.value;
+        const uploadSection = document.getElementById('uploadSection');
+
+        if (value === 'Hadir' || value === 'Sakit' || value === 'Ijin') {
+            uploadSection.style.display = 'block';
+            document.getElementById('selfie').required = true; 
+        } else {
+            uploadSection.style.display = 'none';
+            document.getElementById('selfie').required = false; 
+        }
+    });
+
+    document.getElementById('absenForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+    
+        const date = document.getElementById('date').value;
+        const time = document.getElementById('time').value;
+        const attendanceType = document.getElementById('attendanceType').value;
+        const place = document.getElementById('place').value;
+        const selfieFile = document.getElementById('selfie').files[0];
+    
+        // Mengirim data ke Google Sheets
+        const url = 'YOUR_GOOGLE_APPS_SCRIPT_URL'; // Ganti dengan URL Google Apps Script Anda
+        const formData = new FormData();
+        formData.append('name', document.getElementById('name').value);
+        formData.append('class', document.getElementById('class').value);
+        formData.append('place', place);
+        formData.append('date', date);
+        formData.append('time', time);
+        formData.append('attendanceType', attendanceType);
+    
+        if (selfieFile) {
+            formData.append('selfie', selfieFile); // Menyimpan file selfie
+        }
+
+        fetch(url, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.result === "success") {
+                // Menampilkan hasil pengiriman
+                document.getElementById('absenContainer').style.display = 'none';
+                document.getElementById('resultContainer').style.display = 'block';
+                const resultMessage = `
+                    <div style="color: black;">
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Nama.</span> <span>:</span> <span style="flex: 1; margin-left: 5px;">${document.getElementById('name').value}</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Kelas.</span> <span>:</span> <span style="flex: 1; margin-left: 5px;">${document.getElementById('class').value}</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Tanggal.</span> <span>:</span> <span style="flex: 1; margin-left: 5px;">${date}</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Waktu.</span> <span>:</span> <span style="flex: 1; margin-left: 5px;">${time}</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Nama Tempat PKL.</span> <span>:</span> <span style="flex: 1; margin-left: 5px;">${place}</span>
+                        </div>
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Jenis Presensi.</span> <span>:</span> <span style="flex: 1; margin-left: 5px;">${attendanceType}</span>
+                        </div>
+                        ${selfieFile ? `
+                        <div style="display: flex; align-items: flex-start;">
+                            <span style="width: 150px;">Bukti Foto.</span> <span> :</span> <span style="flex: 1; margin-left: 5px;">${selfieFile.name}</span>
+                        </div>` : ''}
+                    </div>
+               `;
+                document.getElementById('resultMessage').innerHTML = resultMessage.trim();
+            } else {
+                // Menangani kesalahan
+                document.getElementById('absenMessage').innerText = 'Gagal mengirim data!';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('absenMessage').innerText = 'Gagal mengirim data!';
+        });
+    });
+
+    // Kembali ke halaman login
+    document.getElementById('backButton').addEventListener('click', function(event) {
+        event.preventDefault();
+        document.getElementById('resultContainer').style.display = 'none';
+        document.getElementById('loginContainer').style.display = 'block';
+
+        // Mengosongkan data input di form login
+        document.getElementById('username').value = '';
+        document.getElementById('password').value = '';
+        document.getElementById('message').innerText = ''; // Mengosongkan pesan kesalahan
+
+        // Mengosongkan data input di form absensi
+        document.getElementById('name').value = '';
+        document.getElementById('class').value = '';
+        document.getElementById('place').value = '';
+        document.getElementById('date').value = '';
+        document.getElementById('time').value = '';
+        document.getElementById('attendanceType').value = '';
+        document.getElementById('selfie').value = ''; // Mengosongkan input file
+        document.getElementById('uploadSection').style.display = 'none'; // Menyembunyikan bagian upload
+        document.getElementById('absenMessage').innerText = ''; // Mengosongkan pesan absensi
+    });
+</script>
+</body>
+</html>
